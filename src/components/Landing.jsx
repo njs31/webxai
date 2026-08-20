@@ -297,7 +297,7 @@ export default function Landing() {
 
       <footer className="footer">
         <span>© 2026 WEBXAI</span>
-        <a href="/privacy-policy.html">Privacy Policy</a>
+        <a href="privacy-policy.html">Privacy Policy</a>
       </footer>
     </div>
   );
