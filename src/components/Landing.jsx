@@ -3,7 +3,6 @@ import { motion } from 'motion/react';
 import {
   ArrowRight,
   Bot,
-  Box,
   Check,
   Layers,
   MessageSquare,
@@ -33,69 +32,6 @@ function LogoMark() {
       <span />
       <span />
     </span>
-  );
-}
-
-function DashboardMock() {
-  return (
-    <div className="dash">
-      <aside className="dash__side">
-        <div className="dash__brand">
-          <LogoMark />
-        </div>
-        {['Dashboard', 'Workflows', 'Agents', 'Inbox', 'Analytics'].map((item, i) => (
-          <div key={item} className={`dash__nav ${i === 0 ? 'is-active' : ''}`}>
-            {item}
-          </div>
-        ))}
-      </aside>
-      <div className="dash__main">
-        <header className="dash__top">
-          <div>
-            <p className="dash__kicker">Overview</p>
-            <h3>Operations pulse</h3>
-          </div>
-          <div className="dash__pills">
-            <span>Live</span>
-            <span>Last 30 days</span>
-          </div>
-        </header>
-        <div className="dash__grid">
-          <div className="dash__card dash__card--chart">
-            <div className="dash__card-head">
-              <span>Automation volume</span>
-              <strong>+38%</strong>
-            </div>
-            <svg viewBox="0 0 320 120" className="dash__chart" aria-hidden="true">
-              <defs>
-                <linearGradient id="lineGlow" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#7c5cff" />
-                  <stop offset="100%" stopColor="#60a5fa" />
-                </linearGradient>
-              </defs>
-              <path
-                d="M8 88 C 48 80, 70 40, 110 52 C 150 64, 170 20, 210 36 C 250 52, 270 18, 312 28"
-                fill="none"
-                stroke="url(#lineGlow)"
-                strokeWidth="3"
-                strokeLinecap="round"
-              />
-              <circle cx="312" cy="28" r="4.5" fill="#c4b5fd" />
-            </svg>
-          </div>
-          <div className="dash__card">
-            <p>Active workflows</p>
-            <strong>128</strong>
-            <span className="dash__muted">12 agents online</span>
-          </div>
-          <div className="dash__card">
-            <p>Messages handled</p>
-            <strong>45.5K</strong>
-            <span className="dash__muted">WhatsApp + web</span>
-          </div>
-        </div>
-      </div>
-    </div>
   );
 }
 
@@ -153,11 +89,12 @@ function CalEmbed() {
   return <div className="cal-embed" id="my-cal-inline-20min" />;
 }
 
-function ModelShowcase() {
+function Model3D({ src, alt, eager = false, pink = false, className = '' }) {
   const frameRef = useRef(null);
-  const [visible, setVisible] = useState(false);
+  const [visible, setVisible] = useState(eager);
 
   useEffect(() => {
+    if (eager) return undefined;
     const node = frameRef.current;
     if (!node) return undefined;
 
@@ -172,7 +109,7 @@ function ModelShowcase() {
     );
     observer.observe(node);
     return () => observer.disconnect();
-  }, []);
+  }, [eager]);
 
   useEffect(() => {
     if (visible) {
@@ -181,15 +118,21 @@ function ModelShowcase() {
   }, [visible]);
 
   return (
-    <div className="model-frame" ref={frameRef}>
+    <div
+      className={`model-frame ${pink ? 'model-frame--pink' : ''} ${className}`}
+      ref={frameRef}
+    >
       {visible ? (
         <model-viewer
-          src="/models/canon-at1.glb"
-          alt="Canon AT-1 retro camera 3D model"
+          src={src}
+          alt={alt}
           camera-controls
           auto-rotate
+          environment-image="neutral"
           shadow-intensity="1"
-          exposure="1"
+          shadow-softness="0.8"
+          exposure="1.1"
+          tone-mapping="commerce"
           style={{ width: '100%', height: '100%' }}
         />
       ) : (
@@ -260,7 +203,12 @@ export default function Landing() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ delay: 0.35, duration: 1, ease: EASE }}
           >
-            <DashboardMock />
+            <Model3D
+              src="/models/webxai-model.glb"
+              alt="WEBXAI 3D model"
+              eager
+              pink
+            />
           </motion.div>
 
           <motion.div
@@ -290,22 +238,6 @@ export default function Landing() {
               </div>
             ))}
           </div>
-        </section>
-
-        <section className="showcase" id="showcase">
-          <motion.div className="section-head" {...fadeUp()}>
-            <span className="badge">
-              <Box size={12} /> Interactive 3D
-            </span>
-            <h2>Product visuals that respond to your users.</h2>
-            <p className="section-sub">
-              Drag to rotate, pinch to zoom — real-time 3D embeds we build
-              directly into the web, no app required.
-            </p>
-          </motion.div>
-          <motion.div {...fadeUp(0.1)}>
-            <ModelShowcase />
-          </motion.div>
         </section>
 
         <section className="features" id="features">
