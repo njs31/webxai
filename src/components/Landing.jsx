@@ -1,8 +1,9 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import {
   ArrowRight,
   Bot,
+  Box,
   Check,
   Layers,
   MessageSquare,
@@ -152,6 +153,52 @@ function CalEmbed() {
   return <div className="cal-embed" id="my-cal-inline-20min" />;
 }
 
+function ModelShowcase() {
+  const frameRef = useRef(null);
+  const [visible, setVisible] = useState(false);
+
+  useEffect(() => {
+    const node = frameRef.current;
+    if (!node) return undefined;
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setVisible(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: '200px' }
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  useEffect(() => {
+    if (visible) {
+      import('@google/model-viewer');
+    }
+  }, [visible]);
+
+  return (
+    <div className="model-frame" ref={frameRef}>
+      {visible ? (
+        <model-viewer
+          src="/models/canon-at1.glb"
+          alt="Canon AT-1 retro camera 3D model"
+          camera-controls
+          auto-rotate
+          shadow-intensity="1"
+          exposure="1"
+          style={{ width: '100%', height: '100%' }}
+        />
+      ) : (
+        <div className="model-frame__placeholder">Loading 3D model…</div>
+      )}
+    </div>
+  );
+}
+
 export default function Landing() {
   return (
     <div className="page">
@@ -243,6 +290,22 @@ export default function Landing() {
               </div>
             ))}
           </div>
+        </section>
+
+        <section className="showcase" id="showcase">
+          <motion.div className="section-head" {...fadeUp()}>
+            <span className="badge">
+              <Box size={12} /> Interactive 3D
+            </span>
+            <h2>Product visuals that respond to your users.</h2>
+            <p className="section-sub">
+              Drag to rotate, pinch to zoom — real-time 3D embeds we build
+              directly into the web, no app required.
+            </p>
+          </motion.div>
+          <motion.div {...fadeUp(0.1)}>
+            <ModelShowcase />
+          </motion.div>
         </section>
 
         <section className="features" id="features">
