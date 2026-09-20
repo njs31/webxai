@@ -1,3 +1,4 @@
+import { useEffect } from 'react';
 import { motion } from 'motion/react';
 import {
   ArrowRight,
@@ -13,6 +14,8 @@ import './Landing.css';
 
 const EASE = [0.16, 1, 0.3, 1];
 const WHATSAPP = 'https://wa.me/916360334274';
+const CAL_NAMESPACE = '20min';
+const CAL_LINK = 'webxai/20min';
 
 function fadeUp(delay = 0) {
   return {
@@ -95,6 +98,60 @@ function DashboardMock() {
   );
 }
 
+function CalEmbed() {
+  useEffect(() => {
+    (function (C, A, L) {
+      let p = function (a, ar) {
+        a.q.push(ar);
+      };
+      let d = C.document;
+      C.Cal =
+        C.Cal ||
+        function () {
+          let cal = C.Cal;
+          let ar = arguments;
+          if (!cal.loaded) {
+            cal.ns = {};
+            cal.q = cal.q || [];
+            d.head.appendChild(d.createElement('script')).src = A;
+            cal.loaded = true;
+          }
+          if (ar[0] === L) {
+            const api = function () {
+              p(api, arguments);
+            };
+            const namespace = ar[1];
+            api.q = api.q || [];
+            if (typeof namespace === 'string') {
+              cal.ns[namespace] = cal.ns[namespace] || api;
+              p(cal.ns[namespace], ar);
+              p(cal, ['initNamespace', namespace]);
+            } else p(cal, ar);
+            return;
+          }
+          p(cal, ar);
+        };
+    })(window, 'https://app.cal.com/embed/embed.js', 'init');
+
+    window.Cal('init', CAL_NAMESPACE, { origin: 'https://app.cal.com' });
+    window.Cal.config = window.Cal.config || {};
+    window.Cal.config.forwardQueryParams = true;
+
+    window.Cal.ns[CAL_NAMESPACE]('inline', {
+      elementOrSelector: '#my-cal-inline-20min',
+      config: { layout: 'month_view', useSlotsViewOnSmallScreen: 'true' },
+      calLink: CAL_LINK,
+    });
+
+    window.Cal.ns[CAL_NAMESPACE]('ui', {
+      hideEventTypeDetails: false,
+      layout: 'month_view',
+    });
+  }, []);
+
+  return <div className="cal-embed" id="my-cal-inline-20min" />;
+}
+
 export default function Landing() {
   return (
     <div className="page">
@@ -157,6 +214,22 @@ export default function Landing() {
             transition={{ delay: 0.35, duration: 1, ease: EASE }}
           >
             <DashboardMock />
+          </motion.div>
+
+          <motion.div
+            className="hero__booking"
+            id="book"
+            initial={{ opacity: 0, y: 40 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.45, duration: 1, ease: EASE }}
+          >
+            <div className="hero__booking-head">
+              <h2>Book a call</h2>
+              <p>Pick a time that works — 20 minutes, no pressure.</p>
+            </div>
+            <div className="hero__booking-frame">
+              <CalEmbed />
+            </div>
           </motion.div>
         </section>
 
