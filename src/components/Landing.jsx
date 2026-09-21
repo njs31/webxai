@@ -1,7 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'motion/react';
 import {
-  ArrowRight,
   Bot,
   Check,
   Layers,
@@ -89,50 +88,63 @@ function CalEmbed() {
   return <div className="cal-embed" id="my-cal-inline-20min" />;
 }
 
-function Model3D({ src, alt, eager = false, pink = false, className = '' }) {
+const TOP_ORBIT = '0deg 0deg 115%';
+const TOP_FOV = '32deg';
+
+function Model3D({ src, alt }) {
   const frameRef = useRef(null);
-  const [visible, setVisible] = useState(eager);
+  const [ready, setReady] = useState(false);
 
   useEffect(() => {
-    if (eager) return undefined;
-    const node = frameRef.current;
-    if (!node) return undefined;
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setVisible(true);
-          observer.disconnect();
-        }
-      },
-      { rootMargin: '200px' }
-    );
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [eager]);
+    let cancelled = false;
+    import('@google/model-viewer').then(() => {
+      if (!cancelled) setReady(true);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
-    if (visible) {
-      import('@google/model-viewer');
-    }
-  }, [visible]);
+    if (!ready) return undefined;
+    const viewer = frameRef.current?.querySelector('model-viewer');
+    if (!viewer) return undefined;
+
+    const lockTopView = () => {
+      viewer.cameraOrbit = TOP_ORBIT;
+      viewer.fieldOfView = TOP_FOV;
+      if (typeof viewer.jumpCameraToGoal === 'function') {
+        viewer.jumpCameraToGoal();
+      }
+    };
+
+    viewer.addEventListener('load', lockTopView);
+    return () => viewer.removeEventListener('load', lockTopView);
+  }, [ready]);
 
   return (
-    <div
-      className={`model-frame ${pink ? 'model-frame--pink' : ''} ${className}`}
-      ref={frameRef}
-    >
-      {visible ? (
+    <div className="model-frame" ref={frameRef}>
+      {ready ? (
         <model-viewer
           src={src}
           alt={alt}
           camera-controls
-          auto-rotate
+          disable-zoom
+          touch-action="pan-y"
+          camera-orbit={TOP_ORBIT}
+          min-camera-orbit="auto 0deg auto"
+          max-camera-orbit="auto 80deg auto"
+          field-of-view={TOP_FOV}
+          min-field-of-view={TOP_FOV}
+          max-field-of-view={TOP_FOV}
+          interaction-prompt="none"
           environment-image="neutral"
-          shadow-intensity="1"
-          shadow-softness="0.8"
-          exposure="1.1"
+          shadow-intensity="0.6"
+          shadow-softness="1"
+          exposure="1.05"
           tone-mapping="commerce"
+          loading="eager"
+          reveal="auto"
           style={{ width: '100%', height: '100%' }}
         />
       ) : (
@@ -170,45 +182,13 @@ export default function Landing() {
 
       <main id="top">
         <section className="hero">
-          <motion.h1
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: EASE }}
-          >
-            Transform ideas into products
-            <br />
-            <span>With AI.</span>
-          </motion.h1>
-          <motion.p
-            className="hero__sub"
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.15, duration: 0.8, ease: EASE }}
-          >
-            WEBXAI engineers AI automation, WhatsApp systems, brand identity, and
-            full-stack applications — built for speed, clarity, and scale.
-          </motion.p>
-          <motion.a
-            className="btn btn--primary"
-            href="#contact"
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.28, duration: 0.7, ease: EASE }}
-          >
-            Get Started <ArrowRight size={16} />
-          </motion.a>
           <motion.div
             className="hero__visual"
-            initial={{ opacity: 0, y: 40, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ delay: 0.35, duration: 1, ease: EASE }}
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.9, ease: EASE }}
           >
-            <Model3D
-              src="/models/webxai-model.glb"
-              alt="WEBXAI 3D model"
-              eager
-              pink
-            />
+            <Model3D src="/models/webxaiii.glb" alt="WEBXAI 3D logo" />
           </motion.div>
 
           <motion.div
