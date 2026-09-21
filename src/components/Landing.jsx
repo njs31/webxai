@@ -25,15 +25,6 @@ function fadeUp(delay = 0) {
   };
 }
 
-function LogoMark() {
-  return (
-    <span className="logo-mark" aria-hidden="true">
-      <span />
-      <span />
-    </span>
-  );
-}
-
 function CalEmbed() {
   useEffect(() => {
     (function (C, A, L) {
@@ -90,6 +81,12 @@ function CalEmbed() {
 
 const TOP_ORBIT = '0deg 0deg 115%';
 const TOP_FOV = '32deg';
+// Wobble stays within this range so the model never tilts far enough to
+// become hard to read — small, slow sway rather than a full rotation.
+const WOBBLE_THETA_DEG = 9;
+const WOBBLE_PHI_CENTER = 9;
+const WOBBLE_PHI_RANGE = 7;
+const RESUME_DELAY_MS = 2000;
 
 function Model3D({ src, alt }) {
   const frameRef = useRef(null);
@@ -110,16 +107,63 @@ function Model3D({ src, alt }) {
     const viewer = frameRef.current?.querySelector('model-viewer');
     if (!viewer) return undefined;
 
-    const lockTopView = () => {
-      viewer.cameraOrbit = TOP_ORBIT;
+    const reduceMotion = window.matchMedia(
+      '(prefers-reduced-motion: reduce)'
+    ).matches;
+
+    let rafId;
+    let paused = false;
+    let resumeTimer;
+    let start = performance.now();
+
+    const tick = (now) => {
+      if (!paused) {
+        const t = (now - start) / 1000;
+        const theta = WOBBLE_THETA_DEG * Math.sin(t * 0.22);
+        const phi = WOBBLE_PHI_CENTER + WOBBLE_PHI_RANGE * Math.sin(t * 0.31);
+        viewer.cameraOrbit = `${theta.toFixed(2)}deg ${phi.toFixed(2)}deg 115%`;
+      }
+      rafId = requestAnimationFrame(tick);
+    };
+
+    const handleLoad = () => {
       viewer.fieldOfView = TOP_FOV;
-      if (typeof viewer.jumpCameraToGoal === 'function') {
-        viewer.jumpCameraToGoal();
+      if (reduceMotion) {
+        viewer.cameraOrbit = TOP_ORBIT;
+        return;
+      }
+      start = performance.now();
+      rafId = requestAnimationFrame(tick);
+    };
+
+    const pause = () => {
+      paused = true;
+      clearTimeout(resumeTimer);
+    };
+
+    const scheduleResume = () => {
+      clearTimeout(resumeTimer);
+      resumeTimer = setTimeout(() => {
+        start = performance.now();
+        paused = false;
+      }, RESUME_DELAY_MS);
+    };
+
+    const handleCameraChange = (event) => {
+      if (event.detail?.source === 'user-interaction') {
+        pause();
+        scheduleResume();
       }
     };
 
-    viewer.addEventListener('load', lockTopView);
-    return () => viewer.removeEventListener('load', lockTopView);
+    viewer.addEventListener('load', handleLoad);
+    viewer.addEventListener('camera-change', handleCameraChange);
+    return () => {
+      cancelAnimationFrame(rafId);
+      clearTimeout(resumeTimer);
+      viewer.removeEventListener('load', handleLoad);
+      viewer.removeEventListener('camera-change', handleCameraChange);
+    };
   }, [ready]);
 
   return (
@@ -159,26 +203,6 @@ export default function Landing() {
     <div className="page">
       <div className="glow glow--hero" aria-hidden="true" />
       <div className="glow glow--features" aria-hidden="true" />
-
-      <motion.header
-        className="nav"
-        initial={{ opacity: 0, y: -12 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.7, ease: EASE }}
-      >
-        <a href="#top" className="nav__logo">
-          <LogoMark />
-          WEBXAI
-        </a>
-        <nav className="nav__links">
-          <a href="#features">Features</a>
-          <a href="#process">How it Works</a>
-          <a href="#contact">Contact</a>
-        </nav>
-        <a className="btn btn--ghost" href={WHATSAPP} target="_blank" rel="noreferrer">
-          Book a Call
-        </a>
-      </motion.header>
 
       <main id="top">
         <section className="hero">

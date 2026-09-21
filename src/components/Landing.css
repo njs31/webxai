@@ -32,61 +32,6 @@
   background: rgba(79, 70, 229, 0.28);
 }
 
-.logo-mark {
-  display: inline-grid;
-  grid-template-columns: 7px 7px;
-  gap: 3px;
-}
-
-.logo-mark span {
-  width: 7px;
-  height: 14px;
-  border-radius: 3px;
-  background: #fff;
-}
-
-.logo-mark span:last-child {
-  transform: translateY(4px);
-  opacity: 0.55;
-}
-
-.nav {
-  position: sticky;
-  top: 0;
-  z-index: 40;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 18px 28px;
-  backdrop-filter: blur(16px);
-}
-
-.nav__logo {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: #fff;
-  text-decoration: none;
-  font-weight: 600;
-  letter-spacing: -0.03em;
-}
-
-.nav__links {
-  display: none;
-  gap: 28px;
-}
-
-.nav__links a {
-  color: rgba(255, 255, 255, 0.82);
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: 500;
-}
-
-.nav__links a:hover {
-  color: #fff;
-}
-
 .btn {
   display: inline-flex;
   align-items: center;
@@ -126,6 +71,23 @@
   position: relative;
   width: 35vw;
   margin: 0 auto;
+  animation: hero-float 6s ease-in-out infinite;
+}
+
+@keyframes hero-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero__visual {
+    animation: none;
+  }
 }
 
 .hero__visual .model-frame {
